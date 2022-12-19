@@ -2,27 +2,26 @@
 #include <string>
 
 struct Vector2D {
-	int X;
-	int Y;
+    int X;
+    int Y;
 };
 
 class NextWindowFinder {
 private:
-    int BuildingWidth;
-    int BuildingHeight;
     int UpBorder;
     int DownBorder;
     int LeftBorder;
     int RightBorder;
 
 public:
-    NextWindowFinder(size_t NewBuildingWidth, size_t NewBuildingHeight) {
-        this->BuildingWidth = NewBuildingWidth;
-        this->BuildingHeight = NewBuildingHeight;
+    NextWindowFinder(size_t BuildingWidth, size_t BuildingHeight) {
+        // The range of valid coordinates is [0, BuildingSize - 1]
         this->UpBorder = 0;
-        this->DownBorder = BuildingHeight;
+        this->DownBorder = BuildingHeight - 1;
+
+
         this->LeftBorder = 0;
-        this->RightBorder = BuildingWidth;
+        this->RightBorder = BuildingWidth - 1;
     }
 
 public:
@@ -41,26 +40,26 @@ public:
 
         Vector2D Middle;
         Middle = CharacterLocation;
+
+        int DistanceToBorder;
         for (char DirectionSymbol : DirectionFromCharacterToBomb) {
             if (DirectionSymbol == 'U') {
-                Middle.Y = (UpBorder - CharacterLocation.Y) / 2;
-                Middle.Y += CharacterLocation.Y - 1;
-                DownBorder = CharacterLocation.Y < BuildingHeight ? CharacterLocation.Y + 1 : CharacterLocation.Y;
+                Middle.Y = (UpBorder + CharacterLocation.Y) / 2;
+                DownBorder = CharacterLocation.Y;
             }
             if (DirectionSymbol == 'D') {
-                Middle.Y = (DownBorder - CharacterLocation.Y) / 2;
-                Middle.Y += CharacterLocation.Y + 1;
-                UpBorder = CharacterLocation.Y > 0 ? CharacterLocation.Y - 1 : CharacterLocation.Y;
+                Middle.Y = (DownBorder + CharacterLocation.Y) / 2;
+                Middle.Y += (DownBorder + CharacterLocation.Y) % 2;
+                UpBorder = CharacterLocation.Y;
             }
             if (DirectionSymbol == 'L') {
-                Middle.X = (LeftBorder - CharacterLocation.X) / 2;
-                Middle.X += CharacterLocation.X - 1;
-                RightBorder = CharacterLocation.Y < BuildingWidth ? CharacterLocation.X + 1 : CharacterLocation.X;
+                Middle.X = (LeftBorder + CharacterLocation.X) / 2;
+                RightBorder = CharacterLocation.X;
             }
             if (DirectionSymbol == 'R') {
-                Middle.X = (RightBorder - CharacterLocation.X) / 2;
-                Middle.X += CharacterLocation.X + 1;
-                LeftBorder = CharacterLocation.X > 0 ? CharacterLocation.X - 1 : CharacterLocation.X;
+                Middle.X = (RightBorder + CharacterLocation.X) / 2;
+                Middle.X += (RightBorder + CharacterLocation.X) % 2;
+                LeftBorder = CharacterLocation.X;
             }
         }
 
@@ -72,31 +71,34 @@ public:
 
 int main()
 {
+    // Get building sizes
     int BuildingWidth;
     int BuildingHeight;
     std::cin >> BuildingWidth >> BuildingHeight;
     std::cin.ignore();
-    NextWindowFinder WindowFinder(BuildingWidth, BuildingHeight);
 
-    int RemainingTurns; // Maximum number of turns before game over.
+    // Get amount of possible turns
+    int RemainingTurns;
     std::cin >> RemainingTurns;
     std::cin.ignore();
 
+    // Get initial character location
     Vector2D CharacterLocation;
     std::cin >> CharacterLocation.X >> CharacterLocation.Y;
     std::cin.ignore();
 
-    // game loop
+    // Game loop
+    NextWindowFinder WindowFinder(BuildingWidth, BuildingHeight);
     while (1) {
-        // The direction of the bombs from batman's current location (U, UR, R, DR, D, DL, L or UL)
+        // Get direction from character to bomb window (U, UR, R, DR, D, DL, L or UL)
         std::string DirectionFromCharacterToBomb;
         std::cin >> DirectionFromCharacterToBomb;
         std::cin.ignore();
 
-        // The location of the window Batman will jump to
+        // The location of the next window to jump on
         Vector2D NextWindowLocation = WindowFinder.GetNextWindowLocation(CharacterLocation, DirectionFromCharacterToBomb);
-        std::string WindowToJumpTo = std::to_string(NextWindowLocation.X) + " " + std::to_string(NextWindowLocation.Y);
-        std::cout << WindowToJumpTo << "\n";
+        std::string NextWindowLocationAsString= std::to_string(NextWindowLocation.X) + " " + std::to_string(NextWindowLocation.Y);
+        std::cout << NextWindowLocationAsString << "\n";
     }
 
     return 0;
